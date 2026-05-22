@@ -61,7 +61,7 @@ const DAILY_FREE = 3;
 const STORAGE_KEY = "humanizer_usage";
 const PRO_PRICE = "$9";
 
-const CHECKOUT_URL = process.env.NEXT_PUBLIC_LEMON_CHECKOUT_URL || "";
+const EARLY_ACCESS_URL = "https://t.me/YOUR_TELEGRAM";
 
 function getUsage() {
   if (typeof window === "undefined") return { date: "", count: 0 };
@@ -555,18 +555,19 @@ export default function Home() {
             <h3 className="text-lg font-bold text-[#0b1121] dark:text-white mb-2">
               Still sounding like ChatGPT?
             </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
+              Unlimited creator rewrites are currently in private beta.
+            </p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-              You&apos;ve used all {DAILY_FREE} free drifts today.
-              <br />
-              Unlimited creator rewrites &mdash; {PRO_PRICE}.
+              Join the early access group to get unlimited usage and future creator modes.
             </p>
             <button
               onClick={() => {
-                if (CHECKOUT_URL) window.location.href = CHECKOUT_URL;
+                window.open(EARLY_ACCESS_URL, "_blank");
               }}
               className="w-full py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold text-sm shadow-lg shadow-violet-500/20 hover:shadow-violet-500/30 transition-all"
             >
-              Unlimited rewrites &mdash; {PRO_PRICE}
+              Join Early Access
             </button>
             <button
               onClick={() => setShowUpgrade(false)}

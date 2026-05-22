@@ -61,6 +61,8 @@ const DAILY_FREE = 3;
 const STORAGE_KEY = "humanizer_usage";
 const PRO_PRICE = "$9";
 
+const CHECKOUT_URL = process.env.NEXT_PUBLIC_LEMON_CHECKOUT_URL || "";
+
 function getUsage() {
   if (typeof window === "undefined") return { date: "", count: 0 };
   try {
@@ -559,10 +561,12 @@ export default function Home() {
               Unlimited creator rewrites &mdash; {PRO_PRICE}.
             </p>
             <button
-              onClick={() => setShowUpgrade(false)}
+              onClick={() => {
+                if (CHECKOUT_URL) window.location.href = CHECKOUT_URL;
+              }}
               className="w-full py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold text-sm shadow-lg shadow-violet-500/20 hover:shadow-violet-500/30 transition-all"
             >
-              Remove the AI smell permanently &mdash; {PRO_PRICE}
+              Unlimited rewrites &mdash; {PRO_PRICE}
             </button>
             <button
               onClick={() => setShowUpgrade(false)}

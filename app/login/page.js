@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/components/AuthProvider";
+import { getSupabaseClient } from "@/lib/supabase";
 
 export default function LoginPage() {
+  const { supabaseReady, supabaseError: authError } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState("login");
@@ -13,28 +15,36 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const router = useRouter();
 
+  // Log supabase status on every render
+  useEffect(() => {
+    const client = getSupabaseClient();
+    console.log("[login] supabaseReady:", supabaseReady);
+    console.log("[login] supabase client exists:", !!client);
+    console.log("[login] authError:", authError);
+  }, [supabaseReady, authError]);
+
   const handleGoogleLogin = async () => {
     setError(null);
+
+    const client = getSupabaseClient();
+    if (!client) {
+      setError("Supabase auth is not available.");
+      return;
+    }
+
     setGoogleLoading(true);
+    console.log("[login] starting Google OAuth...");
 
-    try {
-      const origin = typeof window !== "undefined" ? window.location.origin : "https://human.runshensm88.com";
-      const redirectTo = `${origin}/account`;
+    const { error: oauthError } = await client.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: "https://human.runshensm88.com" },
+    });
 
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo },
-      });
-
-      if (error) {
-        setError(error.message);
-        setGoogleLoading(false);
-      }
-      // If no error, browser redirects away — no need to reset loading
-    } catch (err) {
-      setError("Supabase auth not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+    if (oauthError) {
+      setError(oauthError.message);
       setGoogleLoading(false);
     }
+    // If no error, browser navigates away — no need to reset loading
   };
 
   const handleSubmit = async (e) => {
@@ -42,18 +52,24 @@ export default function LoginPage() {
     setError(null);
     setMsg(null);
 
+    const client = getSupabaseClient();
+    if (!client) {
+      setError("Supabase auth is not available.");
+      return;
+    }
+
     try {
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) return setError(error.message);
+        const { error: authErr } = await client.auth.signInWithPassword({ email, password });
+        if (authErr) return setError(authErr.message);
         router.push("/");
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) return setError(error.message);
+        const { error: authErr } = await client.auth.signUp({ email, password });
+        if (authErr) return setError(authErr.message);
         setMsg("Check your email to confirm signup.");
       }
     } catch (err) {
-      setError("Supabase auth not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+      setError(err.message);
     }
   };
 
@@ -84,9 +100,9 @@ export default function LoginPage() {
 
           {/* Divider */}
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            <div className="flex-1 h-px bg-slate-200 dark:border-slate-700" />
             <span className="text-[11px] text-slate-400 uppercase font-medium">or</span>
-            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            <div className="flex-1 h-px bg-slate-200 dark:border-slate-700" />
           </div>
 
           <div>

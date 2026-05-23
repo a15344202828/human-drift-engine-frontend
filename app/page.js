@@ -61,7 +61,7 @@ const DAILY_FREE = 3;
 const STORAGE_KEY = "humanizer_usage";
 const PRO_PRICE = "$9";
 
-const EARLY_ACCESS_URL = "https://t.me/YOUR_TELEGRAM";
+const EARLY_ACCESS_URL = "https://9315529064379.gumroad.com/l/muizy";
 
 function getUsage() {
   if (typeof window === "undefined") return { date: "", count: 0 };
@@ -555,19 +555,18 @@ export default function Home() {
             <h3 className="text-lg font-bold text-[#0b1121] dark:text-white mb-2">
               Still sounding like ChatGPT?
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
-              Unlimited creator rewrites are currently in private beta.
-            </p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-              Join the early access group to get unlimited usage and future creator modes.
+              You&apos;ve used all {DAILY_FREE} free creator rewrites.
+              <br />
+              Upgrade to unlock unlimited rewrites and future creator modes.
             </p>
             <button
               onClick={() => {
-                window.open(EARLY_ACCESS_URL, "_blank");
+                window.open("https://9315529064379.gumroad.com/l/muizy", "_blank");
               }}
               className="w-full py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold text-sm shadow-lg shadow-violet-500/20 hover:shadow-violet-500/30 transition-all"
             >
-              Join Early Access
+              Unlimited rewrites &mdash; {PRO_PRICE}
             </button>
             <button
               onClick={() => setShowUpgrade(false)}

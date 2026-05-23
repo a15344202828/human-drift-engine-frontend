@@ -37,7 +37,7 @@ export default function LoginPage() {
 
     const { error: oauthError } = await client.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: "https://human.runshensm88.com" },
+      options: { redirectTo: "https://human.runshensm88.com/auth/callback" },
     });
 
     if (oauthError) {

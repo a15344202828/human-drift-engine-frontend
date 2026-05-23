@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { createSupabaseClient } from "@/lib/supabaseFactory";
-import { supabase, setSupabaseClient } from "@/lib/supabase";
+import { supabase, setSupabaseClient, getSupabaseClient } from "@/lib/supabase";
 
 const AuthContext = createContext({
   user: null,
@@ -22,70 +22,63 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let mounted = true;
+    let authSubscription = null;
 
-    // Read env vars here — NEXT_PUBLIC_ is inlined at build time
-    // in "use client" components
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    async function init() {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    console.log("[auth] NEXT_PUBLIC_SUPABASE_URL:", supabaseUrl);
-    console.log("[auth] NEXT_PUBLIC_SUPABASE_ANON_KEY found:", !!supabaseAnonKey);
+      console.log("[auth] NEXT_PUBLIC_SUPABASE_URL:", supabaseUrl);
+      console.log("[auth] NEXT_PUBLIC_SUPABASE_ANON_KEY found:", !!supabaseAnonKey);
 
-    createSupabaseClient(supabaseUrl, supabaseAnonKey)
-      .then((client) => {
-        if (!mounted) return;
+      const client = await createSupabaseClient(supabaseUrl, supabaseAnonKey);
+      if (!mounted) return;
 
-        if (!client) {
-          setSupabaseError("Supabase not configured — check environment variables");
-          setLoading(false);
-          setSupabaseReady(false);
-          return;
-        }
-
-        // Share the real client with all modules via the proxy
-        setSupabaseClient(client);
-        setSupabaseReady(true);
-
-        // Get initial session
-        client.auth
-          .getSession()
-          .then(({ data: { session: initialSession } }) => {
-            if (!mounted) return;
-            setSession(initialSession);
-            setUser(initialSession?.user ?? null);
-            setLoading(false);
-          })
-          .catch((err) => {
-            if (!mounted) return;
-            console.error("[auth] getSession error:", err);
-            setLoading(false);
-          });
-
-        // Listen for auth state changes
-        const { data: authData } = client.auth.onAuthStateChange((_event, currentSession) => {
-          if (!mounted) return;
-          setSession(currentSession);
-          setUser(currentSession?.user ?? null);
-        });
-
-        return () => {
-          authData?.subscription?.unsubscribe();
-        };
-      })
-      .catch((err) => {
-        if (!mounted) return;
-        console.error("[auth] createSupabaseClient error:", err);
-        setSupabaseError(err.message);
+      if (!client) {
+        setSupabaseError("Supabase not configured — check environment variables");
         setLoading(false);
+        setSupabaseReady(false);
+        return;
+      }
+
+      setSupabaseClient(client);
+      setSupabaseReady(true);
+
+      // ── Step 1: Get initial session ──
+      const {
+        data: { session: initialSession },
+      } = await client.auth.getSession();
+
+      if (!mounted) return;
+
+      console.log("[auth] getSession result:", initialSession ? `user=${initialSession.user.email}` : "no session");
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
+      setLoading(false);
+
+      // ── Step 2: Listen for auth changes ──
+      const { data: authData } = client.auth.onAuthStateChange((event, currentSession) => {
+        console.log("[auth] onAuthStateChange event:", event, currentSession ? `user=${currentSession.user.email}` : "no session");
+        if (!mounted) return;
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
       });
+      authSubscription = authData?.subscription;
+    }
+
+    init();
 
     return () => {
       mounted = false;
+      if (authSubscription) authSubscription.unsubscribe();
     };
   }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    const client = getSupabaseClient();
+    if (client) {
+      await client.auth.signOut();
+    }
     setUser(null);
     setSession(null);
   }, []);

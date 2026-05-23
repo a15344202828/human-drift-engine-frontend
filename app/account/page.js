@@ -2,30 +2,16 @@
 
 import { useAuth } from "@/components/AuthProvider";
 import { useRequireAuth } from "@/lib/useRequireAuth";
-import { useEffect, useState } from "react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 export default function AccountPage() {
   useRequireAuth();
   const { user, session, signOut } = useAuth();
-  const [profile, setProfile] = useState(null);
-
-  useEffect(() => {
-    if (!session) return;
-    fetch(`${API_BASE}/me`, {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    })
-      .then((r) => r.json())
-      .then(setProfile)
-      .catch(() => {});
-  }, [session]);
 
   if (!user) return null;
 
-  const credits = profile?.credits ?? "—";
-  const plan = profile?.plan ?? "free";
-  const isPaid = profile?.is_paid ?? false;
+  const plan = "free";
+  const credits = "5";
+  const isPaid = false;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8fafc] dark:bg-[#0b1121] px-4">
@@ -57,7 +43,7 @@ export default function AccountPage() {
 
           {!isPaid && (
             <button
-              onClick={() => (window.location.href = "/api/checkout")}
+              onClick={() => window.open("https://9315529064379.gumroad.com/l/muizy", "_blank")}
               className="w-full py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold text-sm shadow-lg shadow-violet-500/20 hover:shadow-violet-500/30 transition-all"
             >
               Upgrade &mdash; $9 Unlimited

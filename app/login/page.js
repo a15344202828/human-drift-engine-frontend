@@ -16,12 +16,23 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setError(null);
     setGoogleLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/account` },
-    });
-    if (error) {
-      setError(error.message);
+
+    try {
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://human.runshensm88.com";
+      const redirectTo = `${origin}/account`;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo },
+      });
+
+      if (error) {
+        setError(error.message);
+        setGoogleLoading(false);
+      }
+      // If no error, browser redirects away — no need to reset loading
+    } catch (err) {
+      setError("Supabase auth not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
       setGoogleLoading(false);
     }
   };
@@ -31,14 +42,18 @@ export default function LoginPage() {
     setError(null);
     setMsg(null);
 
-    if (mode === "login") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) return setError(error.message);
-      router.push("/");
-    } else {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) return setError(error.message);
-      setMsg("Check your email to confirm signup.");
+    try {
+      if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return setError(error.message);
+        router.push("/");
+      } else {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) return setError(error.message);
+        setMsg("Check your email to confirm signup.");
+      }
+    } catch (err) {
+      setError("Supabase auth not configured. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
     }
   };
 

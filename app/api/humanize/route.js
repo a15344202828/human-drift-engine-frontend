@@ -71,7 +71,7 @@ export async function POST(req) {
     console.log("[humanize] success, result length:", result.length);
 
     return Response.json({
-      output: result,
+      text: result,
       score: 85,
       category,
       rhythm_archetype: { primary: "creator archetype", secondary: "casual" },

@@ -159,9 +159,9 @@ export default function Home() {
         throw new Error(body.slice(0, 200));
       }
       const json = await res.json();
-      if (!json.output && !json.result) throw new Error("Empty response");
 
-      const outputText = json.output || json.result;
+      const outputText = json.text || json.output || json.result || json.content || "";
+      if (!outputText) throw new Error("No rewrite text returned from API");
       const metrics = json.metrics || {};
       const driftScore = json.score ?? metrics.human_rhythm_after ?? 81;
 
@@ -187,7 +187,7 @@ export default function Home() {
       setUsageState({ date: today, count: newCount });
 
       // Sentence-by-sentence reveal
-      const lines = json.result.split("\n").filter(Boolean);
+      const lines = outputText.split("\n").filter(Boolean);
       let idx = 1;
       revealInterval.current = setInterval(() => {
         if (idx <= lines.length) {
